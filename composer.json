@@ -1,0 +1,51 @@
+{
+    "name": "nagsamayam/laravel-promocodes",
+    "description": "Coupons and promotional codes generator",
+    "keywords": [
+        "nagsamayam",
+        "laravel",
+        "Promocodes",
+        "Coupons"
+    ],
+    "homepage": "https://github.com/nagsamayam/laravel-promocodes",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Nageswara Rao",
+            "email": "nag.samayam@gmail.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^8.1",
+        "illuminate/support": "^9.0",
+        "illuminate/console": "^9.0",
+        "illuminate/database": "^9.0",
+        "illuminate/broadcasting": "^9.0",
+        "illuminate/queue": "^9.0",
+        "illuminate/container": "^9.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "NagSamayam\\Promocodes\\": "src/"
+        },
+        "files": [
+            "src/helpers.php"
+        ]
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "NagSamayam\\Promocodes\\PromocodesServiceProvider"
+            ],
+            "aliases": {
+                "Promocodes": "NagSamayam\\Promocodes\\Facades\\Promocodes"
+            }
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
