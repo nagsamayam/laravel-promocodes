@@ -2,16 +2,15 @@
 
 declare(strict_types=1);
 
-use NagSamayam\Promocodes\Exceptions\PromocodeDoesNotExistException;
-use NagSamayam\Promocodes\Contracts\PromocodeContract;
-use NagSamayam\Promocodes\Facades\Promocodes;
+use Carbon\CarbonInterface;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Collection;
-use Carbon\CarbonInterface;
+use NagSamayam\Promocodes\Contracts\PromocodeContract;
 use NagSamayam\Promocodes\Enums\PromocodeType;
+use NagSamayam\Promocodes\Exceptions\PromocodeDoesNotExistException;
+use NagSamayam\Promocodes\Facades\Promocodes;
 
 if (!function_exists('applyPromocode')) {
-
     function applyPomocode(
         string $code,
         ?User $user = null,
@@ -30,6 +29,7 @@ if (!function_exists('applyPromocode')) {
 if (!function_exists('expirePromocode')) {
     /**
      * @param string $code
+     *
      * @return bool
      */
     function expirePromocode(string $code): bool
@@ -45,7 +45,6 @@ if (!function_exists('expirePromocode')) {
 }
 
 if (!function_exists('createPromocodes')) {
-
     function createPromocodes(
         ?string $customPromoCode = null,
         ?string $mask = null,
@@ -119,7 +118,6 @@ if (!function_exists('createPromocodes')) {
 }
 
 if (!function_exists('createCustomPromocode')) {
-
     function createCustomPromocode(
         ?string $code = null,
         ?string $type = null,

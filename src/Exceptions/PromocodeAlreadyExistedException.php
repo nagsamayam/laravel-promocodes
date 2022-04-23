@@ -8,10 +8,9 @@ use InvalidArgumentException;
 
 class PromocodeAlreadyExistedException extends InvalidArgumentException
 {
-
     public function __construct(string $code)
     {
-        $message =  "The given promocode `{$code}` is already existed. Please try with a new one.";
+        $message = "The given promocode `{$code}` is already existed. Please try with a new one.";
 
         parent::__construct($message);
     }

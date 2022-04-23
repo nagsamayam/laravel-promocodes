@@ -10,8 +10,9 @@ use InvalidArgumentException;
 class PromocodeBoundToOtherUserException extends InvalidArgumentException
 {
     /**
-     * @param User $user
+     * @param User   $user
      * @param string $code
+     *
      * @return void
      */
     public function __construct(User $user, string $code)

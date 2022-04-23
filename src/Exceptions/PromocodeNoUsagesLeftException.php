@@ -10,6 +10,7 @@ class PromocodeNoUsagesLeftException extends InvalidArgumentException
 {
     /**
      * @param string $code
+     *
      * @return void
      */
     public function __construct(string $code)

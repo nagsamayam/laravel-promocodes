@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace NagSamayam\Promocodes;
 
-use NagSamayam\Promocodes\Contracts\PromocodeUserContract;
-use NagSamayam\Promocodes\Contracts\PromocodeContract;
 use Illuminate\Support\ServiceProvider;
+use NagSamayam\Promocodes\Contracts\PromocodeContract;
+use NagSamayam\Promocodes\Contracts\PromocodeUserContract;
 
 class PromocodesServiceProvider extends ServiceProvider
 {
@@ -31,10 +31,10 @@ class PromocodesServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->mergeConfigFrom(__DIR__ . '/../config/promocodes.php', 'promocodes');
+        $this->mergeConfigFrom(__DIR__.'/../config/promocodes.php', 'promocodes');
 
         $this->app->singleton('promocodes', function ($app) {
-            return new Promocodes;
+            return new Promocodes();
         });
     }
 
@@ -56,12 +56,12 @@ class PromocodesServiceProvider extends ServiceProvider
     protected function bootForConsole(): void
     {
         $this->publishes([
-            __DIR__ . '/../config/promocodes.php' => config_path('promocodes.php'),
+            __DIR__.'/../config/promocodes.php' => config_path('promocodes.php'),
         ], 'laravel-promocodes-config');
 
         $this->publishes([
-            __DIR__ . '/../database/migrations/create_promocodes_table.php.stub' => database_path('migrations/' . date('Y_m_d_Hi') . '00_create_promocodes_table.php'),
-            __DIR__ . '/../database/migrations/create_promocode_user_table.php.stub' => database_path('migrations/' . date('Y_m_d_Hi') . '01_create_promocode_user_table.php'),
+            __DIR__.'/../database/migrations/create_promocodes_table.php.stub'     => database_path('migrations/'.date('Y_m_d_Hi').'00_create_promocodes_table.php'),
+            __DIR__.'/../database/migrations/create_promocode_user_table.php.stub' => database_path('migrations/'.date('Y_m_d_Hi').'01_create_promocode_user_table.php'),
         ], 'laravel-promocodes-migrations');
     }
 

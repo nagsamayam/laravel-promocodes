@@ -5,15 +5,15 @@ declare(strict_types=1);
 namespace NagSamayam\Promocodes\Models;
 
 use App\Traits\HasMeta;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use NagSamayam\Promocodes\Contracts\PromocodeContract;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
+use NagSamayam\Promocodes\Contracts\PromocodeContract;
 use NagSamayam\Promocodes\Enums\PromocodeType;
 
 class Promocode extends Model implements PromocodeContract
@@ -36,19 +36,20 @@ class Promocode extends Model implements PromocodeContract
      * @var array
      */
     protected $casts = [
-        'expired_at' => 'datetime',
-        'usages_left' => 'integer',
+        'expired_at'    => 'datetime',
+        'usages_left'   => 'integer',
         'bound_to_user' => 'boolean',
-        'multi_use' => 'boolean',
-        'details' => 'array',
-        'meta' => 'array',
-        'type' => PromocodeType::class,
+        'multi_use'     => 'boolean',
+        'details'       => 'array',
+        'meta'          => 'array',
+        'type'          => PromocodeType::class,
     ];
 
     /**
      * Create a new Eloquent model instance.
      *
      * @param array $attributes
+     *
      * @return void
      */
     public function __construct(array $attributes = [])
@@ -111,6 +112,7 @@ class Promocode extends Model implements PromocodeContract
 
     /**
      * @param Builder $builder
+     *
      * @return void
      */
     public function scopeAvailable(Builder $builder): void
@@ -120,7 +122,8 @@ class Promocode extends Model implements PromocodeContract
 
     /**
      * @param Builder $builder
-     * @param string $code
+     * @param string  $code
+     *
      * @return Builder
      */
     public function scopeFindByCode(Builder $builder, string $code): Builder
@@ -154,6 +157,7 @@ class Promocode extends Model implements PromocodeContract
 
     /**
      * @param User $user
+     *
      * @return bool
      */
     public function allowedForUser(User $user): bool
@@ -163,6 +167,7 @@ class Promocode extends Model implements PromocodeContract
 
     /**
      * @param User $user
+     *
      * @return bool
      */
     public function appliedByUser(User $user): bool
@@ -178,15 +183,16 @@ class Promocode extends Model implements PromocodeContract
     public function getApplicableDiscount(int|float $total): int|float
     {
         return match ($this->type) {
-            PromocodeType::FLAT => $this->getDetail('discount'),
+            PromocodeType::FLAT    => $this->getDetail('discount'),
             PromocodeType::PERCENT => $this->calculateMaxDiscount($total),
-            default => 0
+            default                => 0
         };
     }
 
     public function calculateMaxDiscount(int|float $total): int|float
     {
         $calculatedDiscount = round(($this->getDetail('percent_off') / 100) * $total);
+
         return $calculatedDiscount > $this->max_discount ? $this->max_discount : $calculatedDiscount;
     }
 }

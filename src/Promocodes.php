@@ -4,25 +4,25 @@ declare(strict_types=1);
 
 namespace NagSamayam\Promocodes;
 
-use NagSamayam\Promocodes\Exceptions\PromocodeAlreadyUsedByUserException;
-use NagSamayam\Promocodes\Exceptions\PromocodeBoundToOtherUserException;
-use NagSamayam\Promocodes\Exceptions\UserHasNoAppliesPromocodeTrait;
-use NagSamayam\Promocodes\Exceptions\PromocodeDoesNotExistException;
-use NagSamayam\Promocodes\Exceptions\PromocodeNoUsagesLeftException;
-use NagSamayam\Promocodes\Exceptions\UserRequiredToAcceptPromocode;
-use NagSamayam\Promocodes\Exceptions\PromocodeExpiredException;
+use Carbon\CarbonInterface;
+use Illuminate\Foundation\Auth\User;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Session;
+use NagSamayam\Promocodes\Contracts\PromocodeContract;
 use NagSamayam\Promocodes\Contracts\PromocodeUserContract;
 use NagSamayam\Promocodes\Events\GuestAppliedPromocode;
 use NagSamayam\Promocodes\Events\UserAppliedPromocode;
-use NagSamayam\Promocodes\Contracts\PromocodeContract;
-use NagSamayam\Promocodes\Traits\AppliesPromocode;
-use Illuminate\Support\Facades\Session;
-use Illuminate\Foundation\Auth\User;
-use Illuminate\Support\Collection;
-use Carbon\CarbonInterface;
 use NagSamayam\Promocodes\Exceptions\PromocodeAlreadyExistedException;
+use NagSamayam\Promocodes\Exceptions\PromocodeAlreadyUsedByUserException;
 use NagSamayam\Promocodes\Exceptions\PromocodeAlreadyUsedForOrderException;
+use NagSamayam\Promocodes\Exceptions\PromocodeBoundToOtherUserException;
+use NagSamayam\Promocodes\Exceptions\PromocodeDoesNotExistException;
+use NagSamayam\Promocodes\Exceptions\PromocodeExpiredException;
+use NagSamayam\Promocodes\Exceptions\PromocodeNoUsagesLeftException;
+use NagSamayam\Promocodes\Exceptions\UserHasNoAppliesPromocodeTrait;
+use NagSamayam\Promocodes\Exceptions\UserRequiredToAcceptPromocode;
 use NagSamayam\Promocodes\Models\Promocode;
+use NagSamayam\Promocodes\Traits\AppliesPromocode;
 
 class Promocodes
 {
@@ -98,6 +98,7 @@ class Promocodes
 
     /**
      * @param string $code
+     *
      * @return $this
      */
     public function code(string $code): static
@@ -107,136 +108,162 @@ class Promocodes
 
         $this->code = $code;
         $this->promocode = $promocode;
+
         return $this;
     }
 
     /**
      * @param User $user
+     *
      * @return $this
      */
     public function user(User $user): static
     {
         $this->user = $user;
+
         return $this;
     }
 
     public function createdByAdmin(User $createdByAdmin): static
     {
         $this->createdByAdmin = $createdByAdmin;
+
         return $this;
     }
 
     /**
      * @param string $mask
+     *
      * @return $this
      */
     public function mask(string $mask): static
     {
         $this->mask = $mask;
+
         return $this;
     }
 
     /**
      * @param string $characters
+     *
      * @return $this
      */
     public function characters(string $characters): static
     {
         $this->characters = $characters;
+
         return $this;
     }
 
     /**
      * @param bool $boundToUser
+     *
      * @return $this
      */
     public function boundToUser(bool $boundToUser = true): static
     {
         $this->boundToUser = $boundToUser;
+
         return $this;
     }
 
     /**
      * @param bool $multiUse
+     *
      * @return $this
      */
     public function multiUse(bool $multiUse = true): static
     {
         $this->multiUse = $multiUse;
+
         return $this;
     }
 
     /**
      * @param bool $unlimited
+     *
      * @return $this
      */
     public function unlimited(bool $unlimited = true): static
     {
         $this->unlimited = $unlimited;
+
         return $this;
     }
 
     /**
      * @param int $count
+     *
      * @return $this
      */
     public function count(int $count): static
     {
         $this->count = $count;
+
         return $this;
     }
 
     public function type(string $type): static
     {
         $this->type = $type;
+
         return $this;
     }
 
     /**
      * @param int $usagesLeft
+     *
      * @return $this
      */
     public function usages(int $usagesLeft): static
     {
         $this->usagesLeft = $usagesLeft;
+
         return $this;
     }
 
     /**
      * @param array $details
+     *
      * @return $this
      */
     public function details(array $details): static
     {
         $this->details = $details;
+
         return $this;
     }
 
     public function minOrderValue(int $minOrderValue): static
     {
         $this->minOrderValue = $minOrderValue;
+
         return $this;
     }
 
     public function maxDiscount(int $maxDiscount): static
     {
         $this->maxDiscount = $maxDiscount;
+
         return $this;
     }
 
     public function orderTotal(int|float $orderTotal): static
     {
         $this->orderTotal = $orderTotal;
+
         return $this;
     }
 
     /**
      * @param CarbonInterface $expiredAt
+     *
      * @return $this
      */
     public function expiration(CarbonInterface $expiredAt): static
     {
         $this->expiredAt = $expiredAt;
+
         return $this;
     }
 
@@ -284,8 +311,8 @@ class Promocodes
                 ->attach(
                     $this->promocode,
                     [
-                        'meta' => $meta,
-                        'session_id' => Session::getId()
+                        'meta'       => $meta,
+                        'session_id' => Session::getId(),
                     ]
                 );
 
@@ -301,7 +328,7 @@ class Promocodes
 
             $attributes = [
                 $promocodeForeignId => $this->promocode->id,
-                'session_id' => Session::getId(),
+                'session_id'        => Session::getId(),
             ];
             if ($meta) {
                 $attributes += ['meta' => $meta];
@@ -360,17 +387,17 @@ class Promocodes
     private function savePromocode(string $code): Promocode
     {
         return app(PromocodeContract::class)->create([
-            'user_id' => $this->user?->id,
-            'code' => $code,
-            'type' => $this->type,
-            'usages_left' => $this->unlimited ? -1 : $this->usagesLeft,
-            'bound_to_user' => $this->user || $this->boundToUser,
-            'multi_use' => $this->multiUse,
-            'details' => $this->details,
-            'min_order_value' => $this->minOrderValue,
-            'max_discount' => $this->maxDiscount,
+            'user_id'             => $this->user?->id,
+            'code'                => $code,
+            'type'                => $this->type,
+            'usages_left'         => $this->unlimited ? -1 : $this->usagesLeft,
+            'bound_to_user'       => $this->user || $this->boundToUser,
+            'multi_use'           => $this->multiUse,
+            'details'             => $this->details,
+            'min_order_value'     => $this->minOrderValue,
+            'max_discount'        => $this->maxDiscount,
             'created_by_admin_id' => $this->createdByAdmin?->id,
-            'expired_at' => $this->expiredAt,
+            'expired_at'          => $this->expiredAt,
         ]);
     }
 
@@ -422,8 +449,9 @@ class Promocodes
     }
 
     /**
-     * @param string $code
+     * @param string        $code
      * @param array<string> $existingCodes
+     *
      * @return bool
      */
     protected function codeExists(string $code, array $existingCodes): bool

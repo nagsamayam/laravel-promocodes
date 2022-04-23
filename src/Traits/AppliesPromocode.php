@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace NagSamayam\Promocodes\Traits;
 
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use NagSamayam\Promocodes\Contracts\PromocodeContract;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use NagSamayam\Promocodes\Contracts\PromocodeContract;
 use NagSamayam\Promocodes\Facades\Promocodes;
 
 trait AppliesPromocode

@@ -6,13 +6,15 @@ namespace NagSamayam\Promocodes\Events;
 
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Foundation\Auth\User;
-use NagSamayam\Promocodes\Contracts\PromocodeContract;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
+use NagSamayam\Promocodes\Contracts\PromocodeContract;
 
 class UserAppliedPromocode
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels;
+    use Dispatchable;
+    use InteractsWithSockets;
+    use SerializesModels;
 
     /**
      * @var PromocodeContract
@@ -26,7 +28,7 @@ class UserAppliedPromocode
 
     /**
      * @param PromocodeContract $promocode
-     * @param User $user
+     * @param User              $user
      */
     public function __construct(PromocodeContract $promocode, User $user)
     {
