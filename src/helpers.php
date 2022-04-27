@@ -8,11 +8,12 @@ use NagSamayam\Promocodes\Facades\Promocodes;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Collection;
 use Carbon\CarbonInterface;
+use NagSamayam\Promocodes\Enums\PromocodeStatus;
 use NagSamayam\Promocodes\Enums\PromocodeType;
 
-if (!function_exists('applyPromocode')) {
+if (!function_exists('apply_promocode')) {
 
-    function applyPomocode(
+    function apply_promocode(
         string $code,
         ?User $user = null,
         ?array $promoCodeUsermeta = null
@@ -27,12 +28,12 @@ if (!function_exists('applyPromocode')) {
     }
 }
 
-if (!function_exists('expirePromocode')) {
+if (!function_exists('expire_promocode')) {
     /**
      * @param string $code
      * @return bool
      */
-    function expirePromocode(string $code): bool
+    function expire_promocode(string $code): bool
     {
         $promocode = app(PromocodeContract::class)->findByCode($code)->first();
 
@@ -44,9 +45,9 @@ if (!function_exists('expirePromocode')) {
     }
 }
 
-if (!function_exists('createPromocodes')) {
+if (!function_exists('create_promocodes')) {
 
-    function createPromocodes(
+    function create_promocodes(
         ?string $customPromoCode = null,
         ?string $mask = null,
         ?string $characters = null,
@@ -61,6 +62,7 @@ if (!function_exists('createPromocodes')) {
         ?int $maxDiscount = null,
         bool $boundToUser = false,
         ?CarbonInterface $expiration = null,
+        string $status = 'inactive',
         array $details = []
     ): Collection {
         $count = isset($customPromoCode) ? 1 : $count;
@@ -114,13 +116,15 @@ if (!function_exists('createPromocodes')) {
             $promocodes = $promocodes->expiration($expiration);
         }
 
+        $promocodes->status($status);
+
         return $promocodes->create($customPromoCode);
     }
 }
 
-if (!function_exists('createCustomPromocode')) {
+if (!function_exists('create_custom_promocode')) {
 
-    function createCustomPromocode(
+    function create_custom_promocode(
         ?string $code = null,
         ?string $type = null,
         bool $unlimited = false,
@@ -132,6 +136,7 @@ if (!function_exists('createCustomPromocode')) {
         ?int $maxDiscount = null,
         bool $boundToUser = false,
         ?CarbonInterface $expiration = null,
+        string $status = 'inactive',
         array $details = []
     ): PromocodeContract {
         $promocodes = Promocodes::count(1)->details($details);
@@ -174,6 +179,33 @@ if (!function_exists('createCustomPromocode')) {
             $promocodes = $promocodes->expiration($expiration);
         }
 
+        $promocodes->status($status);
+
         return $promocodes->create($code);
+    }
+}
+
+if (!function_exists('update_promocode_status')) {
+    function update_promocode_status(string $code, string $status, ?User $updatedByAdmin = null): ?PromocodeContract
+    {
+        return match ($status) {
+            PromocodeStatus::ACTIVE->value => activate_promocode($code, $updatedByAdmin),
+            PromocodeStatus::INACTIVE->value => deactivate_promocode($code, $updatedByAdmin),
+            default => null,
+        };
+    }
+}
+
+if (!function_exists('activate_promocode')) {
+    function activate_promocode(string $code, ?User $updatedByAdmin = null): ?PromocodeContract
+    {
+        return Promocodes::code($code)->updatedByAdmin($updatedByAdmin)->markAsActive();
+    }
+}
+
+if (!function_exists('deactivate_promocode')) {
+    function deactivate_promocode(string $code, ?User $updatedByAdmin = null): ?PromocodeContract
+    {
+        return Promocodes::code($code)->updatedByAdmin($updatedByAdmin)->markAsInActive();
     }
 }

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace NagSamayam\Promocodes\Enums;
 
-enum PromocodeType: string
+enum PromocodeStatus: string
 {
-    case FLAT = 'flat';
-    case PERCENT = 'percent';
+    case ACTIVE = 'active';
+    case INACTIVE = 'inactive';
 
     public static function getOptions(): array
     {
@@ -21,5 +21,14 @@ enum PromocodeType: string
         }
 
         return $options;
+    }
+
+    public function badge(): string
+    {
+        return match ($this) {
+            self::ACTIVE => 'badge rounded-pill badge-light-success',
+            self::INACTIVE => 'badge rounded-pill badge-light-danger',
+            default => '',
+        };
     }
 }

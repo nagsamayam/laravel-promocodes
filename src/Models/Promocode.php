@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace NagSamayam\Promocodes\Models;
 
-use App\Traits\HasMeta;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,12 +13,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
+use NagSamayam\Promocodes\Enums\PromocodeStatus;
 use NagSamayam\Promocodes\Enums\PromocodeType;
 
 class Promocode extends Model implements PromocodeContract
 {
     use HasFactory;
-    use HasMeta;
 
     /**
      * The attributes that are mass assignable.
@@ -43,6 +42,7 @@ class Promocode extends Model implements PromocodeContract
         'details' => 'array',
         'meta' => 'array',
         'type' => PromocodeType::class,
+        'status' => PromocodeStatus::class,
     ];
 
     /**
@@ -175,6 +175,11 @@ class Promocode extends Model implements PromocodeContract
         return Arr::get($this->details, $key) ?? $fallback;
     }
 
+    public function getMeta(string $key, mixed $fallback = null): mixed
+    {
+        return Arr::get($this->meta, $key) ?? $fallback;
+    }
+
     public function getApplicableDiscount(int|float $total): int|float
     {
         return match ($this->type) {
@@ -188,5 +193,21 @@ class Promocode extends Model implements PromocodeContract
     {
         $calculatedDiscount = round(($this->getDetail('percent_off') / 100) * $total);
         return $calculatedDiscount > $this->max_discount ? $this->max_discount : $calculatedDiscount;
+    }
+
+    public function markAsActive(mixed $adminId): self
+    {
+        return tap($this->forceFill([
+            'status' => PromocodeStatus::ACTIVE,
+            'updated_by_admin_id' => $adminId
+        ]))->save();
+    }
+
+    public function markAsInactive(mixed $adminId): self
+    {
+        return tap($this->forceFill([
+            'status' => PromocodeStatus::INACTIVE,
+            'updated_by_admin_id' => $adminId
+        ]))->save();
     }
 }

@@ -20,8 +20,10 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Collection;
 use Carbon\CarbonInterface;
+use NagSamayam\Promocodes\Enums\PromocodeStatus;
 use NagSamayam\Promocodes\Exceptions\PromocodeAlreadyExistedException;
 use NagSamayam\Promocodes\Exceptions\PromocodeAlreadyUsedForOrderException;
+use NagSamayam\Promocodes\Exceptions\PromocodeNotAcitveException;
 use NagSamayam\Promocodes\Models\Promocode;
 
 class Promocodes
@@ -52,6 +54,8 @@ class Promocodes
     protected int $count = 1;
 
     protected string $type;
+
+    public string $status = '';
 
     /**
      * @var bool
@@ -85,6 +89,8 @@ class Promocodes
 
     protected ?User $createdByAdmin = null;
 
+    protected ?User $updatedByAdmin = null;
+
     protected ?int $minOrderValue = null;
 
     protected ?int $maxDiscount = null;
@@ -95,6 +101,11 @@ class Promocodes
      * @var PromocodeContract|null
      */
     protected ?PromocodeContract $promocode = null;
+
+    public function __construct()
+    {
+        $this->status = PromocodeStatus::INACTIVE->value;
+    }
 
     /**
      * @param string $code
@@ -120,9 +131,15 @@ class Promocodes
         return $this;
     }
 
-    public function createdByAdmin(User $createdByAdmin): static
+    public function createdByAdmin(?User $createdByAdmin): static
     {
         $this->createdByAdmin = $createdByAdmin;
+        return $this;
+    }
+
+    public function updatedByAdmin(?User $updatedByAdmin): static
+    {
+        $this->updatedByAdmin = $updatedByAdmin;
         return $this;
     }
 
@@ -212,13 +229,13 @@ class Promocodes
         return $this;
     }
 
-    public function minOrderValue(int $minOrderValue): static
+    public function minOrderValue(?int $minOrderValue): static
     {
         $this->minOrderValue = $minOrderValue;
         return $this;
     }
 
-    public function maxDiscount(int $maxDiscount): static
+    public function maxDiscount(?int $maxDiscount): static
     {
         $this->maxDiscount = $maxDiscount;
         return $this;
@@ -240,10 +257,20 @@ class Promocodes
         return $this;
     }
 
+    public function status(string $status): static
+    {
+        $this->status = $status;
+        return $this;
+    }
+
     public function apply(?array $meta = null): ?PromocodeContract
     {
         if (!$this->promocode) {
             throw new PromocodeDoesNotExistException($this->code);
+        }
+
+        if ($this->promocode->status !== PromocodeStatus::ACTIVE) {
+            throw new PromocodeNotAcitveException($this->code);
         }
 
         if (!$this->promocode->hasUsagesLeft()) {
@@ -338,6 +365,25 @@ class Promocodes
         return $this->savePromocode($code);
     }
 
+    public function updateStatus(string $status): ?static
+    {
+        return match ($status) {
+            PromocodeStatus::ACTIVE->value => self::markAsActive(),
+            PromocodeStatus::INACTIVE->value => self::markAsInactive(),
+            default => null,
+        };
+    }
+
+    public function markAsActive()
+    {
+        return $this->promocode->markAsActive($this->updatedByAdmin?->id);
+    }
+
+    public function markAsInactive()
+    {
+        return $this->promocode->markAsInactive($this->updatedByAdmin?->id);
+    }
+
     public function getApplicableDiscount(bool $forceCheck = false): int|float
     {
         if (!$this->promocode) {
@@ -345,6 +391,11 @@ class Promocodes
         }
 
         if (!$forceCheck) {
+
+            if ($this->promocode->status !== PromocodeStatus::ACTIVE) {
+                throw new PromocodeNotAcitveException($this->code);
+            }
+
             if (!$this->promocode->hasUsagesLeft()) {
                 throw new PromocodeNoUsagesLeftException($this->code);
             }
@@ -371,6 +422,7 @@ class Promocodes
             'max_discount' => $this->maxDiscount,
             'created_by_admin_id' => $this->createdByAdmin?->id,
             'expired_at' => $this->expiredAt,
+            'status' => $this->status,
         ]);
     }
 

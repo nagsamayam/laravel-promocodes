@@ -97,6 +97,7 @@ It's very easy to use. Methods are combined, so that you can configure promocode
 | Details         | Array of details which will be retrieved upon apply. `discount` key for `flat` type. `percent_off` key for `percent` type |
 | Min order value | Define order minimum value                                                                                                |
 | Max discount    | Define maximum discount to be applied for an order.                                                                       |
+| Status          | Promocode status. active or inactive. default `inactive`                                                                  |
 
 ## Creating Promocodes
 
@@ -107,6 +108,7 @@ Combine methods as you need. You can skip any method that you don't need, most o
 ```php
 use NagSamayam\Promocodes\Facades\Promocodes;
 use NagSamayam\Promocodes\Enums\PromocodeType;
+use NagSamayam\Promocodes\Enums\PromocodeStatus;
 
 Promocodes::mask('AA-***-BB') // default: config('promocodes.code_mask')
     ->characters('ABCDE12345') // default: config('promocodes.allowed_symbols')
@@ -121,6 +123,7 @@ Promocodes::mask('AA-***-BB') // default: config('promocodes.code_mask')
     ->maxDiscount(5) // default: null
     ->createdByAdmin(User::find(1)) // default: null
     ->type(PromocodeType::PERCENT->value) // default: PromocodeType::FLAT->value
+    ->status(PromocodeStatus::ACTIVE->value); // default: 'inactive'
     ->create(); // default: null
 
 Promocodes::multiUse() // default: false
@@ -133,6 +136,7 @@ Promocodes::multiUse() // default: false
     ->maxDiscount(5) // default: null
     ->createdByAdmin(User::find(1)) // default: null
     ->type(PromocodeType::FLAT->value) // default: PromocodeType::FLAT->value
+    ->status(PromocodeStatus::ACTIVE->value); // default: 'inactive'
     ->create('AA-A4C-B1'); // default: null // Custom promo code can be passed // Equivalent to createWithCustomCode('MO-OT2P-897P') method
 
 Promocodes::multiUse() // default: false
@@ -148,6 +152,7 @@ Promocodes::multiUse() // default: false
     ->maxDiscount(5) // default: null
     ->createdByAdmin(User::find(1)) // default: null
     ->type(PromocodeType::PERCENT->value) // default: PromocodeType::FLAT->value
+    ->status(); // default: 'inactive'
     ->createWithCustomCode('MO-OT2P-897P');
 ```
 
@@ -157,7 +162,10 @@ There is a global helper function which will do the same as promocodes class. Yo
 8.1.
 
 ```php
-createPromocodes(
+use NagSamayam\Promocodes\Enums\PromocodeType;
+use NagSamayam\Promocodes\Enums\PromocodeStatus;
+
+create_promocodes(
     type: PromocodeType::PERCENT->value, // default: PromocodeType::FLAT->value
     mask: 'AA-***-BB', // default: config('promocodes.code_mask')
     characters: 'ABCDE12345', // default: config('promocodes.allowed_symbols')
@@ -171,9 +179,10 @@ createPromocodes(
     createdByAdmin: User::find(98), // default: null
   	maxDiscount: 101, // default: null
   	minOrderValue: 1000, // default: null
+    status: PromocodeStatus::ACTIVE->value // default: PromocodeStatus::INACTIVE->value
 );
 
-createCustomPromocode(
+create_custom_promocode(
     code: '66-OMPY-ULZU',
     type: PromocodeType::FLAT->value, // default: PromocodeType::FLAT->value
     multiUse: true, // default: false
@@ -185,6 +194,7 @@ createCustomPromocode(
     createdByAdmin: User::find(98), // default: null
   	maxDiscount: 101, // default: null
   	minOrderValue: 1000 // default: null
+    status: PromocodeStatus::ACTIVE->value // default: PromocodeStatus::INACTIVE->value
 );
 ```
 
@@ -195,6 +205,7 @@ If you want to output promocodes and not save them to database, you can call gen
 ```php
 use NagSamayam\Promocodes\Facades\Promocodes;
 use NagSamayam\Promocodes\Enums\PromocodeType;
+use NagSamayam\Promocodes\Enums\PromocodeStatus;
 
 Promocodes::mask('AA-***-BB') // default: config('promocodes.code_mask')
     ->characters('ABCDE12345') // default: config('promocodes.allowed_symbols')
@@ -208,6 +219,7 @@ Promocodes::mask('AA-***-BB') // default: config('promocodes.code_mask')
     ->minOrderValue(500)
     ->maxDiscount(5)
     ->createdByAdmin(User::find(1))
+    ->status(PromocodeStatus::ACTIVE->value) // default: PromocodeStatus::INACTIVE->value
     ->type(PromocodeType::PERCENT->value) // default: PromocodeType::FLAT->value
     ->generate();
 ```
@@ -231,7 +243,7 @@ Promocodes::code('ABC-DEF')
 There is a global helper function which will do the same as promocodes class.
 
 ```php
-applyPomocode(
+apply_promocode(
     'ABC-DEF',
     User::find(1), // default: null,
     ['order_id' => '405-6828433-4214765'] // default: null // Good to send unique order ID // Preferbly string format
@@ -255,6 +267,7 @@ UserHasNoAppliesPromocodeTrait - "The given user model doesn't have AppliesPromo
 UserRequiredToAcceptPromocode - "The given code `ABC-DEF` requires to be used by user, not by guest."
 PromocodeAlreadyExistedException - "The given promocode `10s%discount` is already existed. Please try with a new one."
 PromocodeAlreadyUsedForOrderException - "The given code `ABC-DEF` is already applied for the order with id 405-6828433-4214765."
+PromocodeNotAcitveException - "The given promocode `ABC-DEF` is not active. Please try with a new one."
 ```
 
 #### Events
@@ -279,7 +292,29 @@ UserAppliedPromocode // Fired when user applies promocode
 There is a global helper function which will expire promocode.
 
 ```php
-expirePromocode('ABC-DEF');
+expire_promocode('ABC-DEF');
+```
+
+### Update Promocode status
+
+### Using class
+
+```php
+use NagSamayam\Promocodes\Facades\Promocodes;
+use NagSamayam\Promocodes\Enums\PromocodeStatus;
+
+Promocodes::code('ABC-DEF')
+    ->updatedByAdmin(User::find(6))
+    ->updateStatus(PromocodeStatus::ACTIVE->value);
+```
+
+### Using helper
+
+```php
+update_promocode_status('ABC-DEF',
+    PromocodeStatus::ACTIVE->value,
+    User::find(6)
+);
 ```
 
 ## Trait Methods
@@ -303,7 +338,7 @@ use NagSamayam\Promocodes\Facades\Promocodes;
 
 Promocodes::code('ABC-DEF')
     ->orderTotal(1000) // default: 0
-    ->getApplicableDiscount($forceCheck = true); // default: false // If false, it will not check for usagesLeft and expiry
+    ->getApplicableDiscount($forceCheck = true); // default: false // If false, it will not check for usagesLeft, status and expiry
 ```
 
 ## Testing
